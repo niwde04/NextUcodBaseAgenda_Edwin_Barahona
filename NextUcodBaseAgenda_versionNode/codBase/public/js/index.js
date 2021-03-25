@@ -20,6 +20,9 @@ function validarUsuario() {
                  if (authorize) {
                      window.location.href = "http://localhost:3000/main.html";
                  }
+             },
+             error: function(){
+                 alert("Usuario o contraseña incorrecta")
              }
          }) 
 

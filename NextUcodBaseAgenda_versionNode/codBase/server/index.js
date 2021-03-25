@@ -38,7 +38,7 @@ app.post('/login',function(req,res){
         if (err) {
             return res.status(500).send({message: 'Error al intentar obtener el usuario en el inicio de sesión. (status:500)'})
           }else{
-              console.log(userFind)
+              
             if(userFind.length == 1){
 
                 res.status(200).json({
@@ -46,6 +46,7 @@ app.post('/login',function(req,res){
                     message: "Login correcto"
                 })
             }else{
+                
                 res.status(401).json({
                     success: false,
                     message: "Login incorrecto"
