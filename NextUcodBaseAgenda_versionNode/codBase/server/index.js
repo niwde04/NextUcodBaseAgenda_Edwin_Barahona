@@ -56,9 +56,9 @@ app.post('/login',function(req,res){
           }
     })
 
-  
-
 })
+
+
 
 
 app.use('/', express.static('../public'));
