@@ -1,12 +1,11 @@
-alert("si asi es jaja")
-
 class EventManager {
 
     constructor() {
-        this.obtenerDataInicial()
+        // this.obtenerDataInicial()
         this.inicializarFormulario()
-       // this.guardarEvento()
+        //this.guardarEvento()
     }
+
 
     inicializarFormulario() {
         $('#start_date, #titulo, #end_date').val('');
@@ -32,42 +31,100 @@ class EventManager {
             }
         })
     }
-
-    inicializarCalendario(eventos) {
-        $('.calendario').fullCalendar({
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,basicDay'
-            },
-            defaultDate: '2018-01-10',
-            navLinks: true,
-            editable: true,
-            eventLimit: true,
-            droppable: true,
-            dragRevertDuration: 0,
-            timeFormat: 'H:mm'/*,
-            eventDrop: (event) => {
-                this.actualizarEvento(event)
-            },
-            events: eventos,
-            eventDragStart: (event, jsEvent) => {
-                $('.delete').find('img').attr('src', "img/delete.png");
-                $('.delete').css('background-color', '#a70f19')
-            },
-            eventDragStop: (event, jsEvent) => {
-                var trashEl = $('.delete');
-                var ofs = trashEl.offset();
-                var x1 = ofs.left;
-                var x2 = ofs.left + trashEl.outerWidth(true);
-                var y1 = ofs.top;
-                var y2 = ofs.top + trashEl.outerHeight(true);
-                if (jsEvent.pageX >= x1 && jsEvent.pageX <= x2 &&
-                    jsEvent.pageY >= y1 && jsEvent.pageY <= y2) {
-                    this.eliminarEvento(event)
-                    $('.calendario').fullCalendar('removeEvents', event.id);
-                }
-            }*/
-        })
-    }
 }
+
+$(document).ready(function () {
+    listarEventos()
+
+});
+
+$("#save").click(function () {
+    let title = $('#titulo');
+    let start = $('#start_date');
+    let end = $('#end_date');
+
+    if (title.val() != "" && start.val() != "") {
+
+        $.ajax({
+            url: '/eventos',
+            method: 'POST',
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                title: title.val(),
+                start: start.val(),
+                end: end.val()
+            }),
+            success: function (res) {
+
+                listarEventos()
+
+            },
+            error: function () {
+                alert("Error al ingresar Evento")
+            }
+        })
+
+
+    } else {
+        alert("Complete todos los campos");
+    }
+
+})
+
+function listarEventos() {
+    $.get("/eventList", function (data, status) {
+
+        const calendar = new FullCalendar.Calendar($('.calendario')[0], {
+            initialView: 'dayGridMonth',
+            editable: true,
+            eventDrop: (event) => {
+                actualizarEvento(event)
+            }
+        })
+
+        calendar.render();
+
+     
+        for (let i = 0; i < JSON.stringify(data.length); i++) {
+
+            calendar.addEvent({
+                id: data[i]._id,
+                title: data[i].title,
+                start: data[i].start,
+                end: data[i].end,
+                allDay: true
+            });
+
+        }
+
+    });
+
+}
+
+function actualizarEvento(evento){
+console.log(evento.event.id,)
+    $.ajax({
+        url: '/eventUpdate/'+ evento.event.id,
+        method: 'PUT',
+        contentType: "application/json",
+        dataType: "json",
+        data: JSON.stringify({
+            title: evento.event.title,
+            start: evento.event.start,
+            end: evento.event.end
+        }),
+        success: function (res) {
+
+            //listarEventos()
+
+        },
+        error: function () {
+            alert("Error al ACTUALIZAR Evento")
+        }
+    })
+    
+
+}
+
+const Manager = new EventManager()
