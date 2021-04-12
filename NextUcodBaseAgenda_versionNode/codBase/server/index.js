@@ -1,6 +1,7 @@
 require('./connetion.js'); // importa el archivo de conexión
 const User = require('../model/user.js'); // importa el esquema
 const Eventos = require('../model/events.js');
+const { json } = require('express');
 
 const express = require('express'),
     app = express(),
@@ -53,7 +54,9 @@ app.post('/login', function (req, res) {
 
                 res.status(200).json({
                     success: true,
-                    message: "Login correcto"
+                    message: "Login correcto",
+                    username: username
+                    
                 })
             } else {
 
@@ -75,13 +78,16 @@ app.post('/eventos', function (req, res) {
     let end = req.body.end
     try {
         const eventos = new Eventos({
+            
             title: title,
             start: start,
-            end: end
+            end: end,
+            username:'edwin'
+            
         });
         eventos.save();
     } catch (err) {
-        
+
         res.status(400).json({
             success: false,
             message: err.message
@@ -95,39 +101,62 @@ app.post('/eventos', function (req, res) {
 
 })
 
-app.get('/eventList', function (req, res) {
-    Eventos.find({}).then(function (events) {
+app.get('/eventList/:id', function (req, res) {
+   
+    const userNameString = req.params.id;
+    const userNameJson = (userNameString)
+
+    console.log(JSON.stringify(userNameJson))
+
+    Eventos.find({username:userNameJson}).then(function (events) {
         res.send(events);
     });
 });
 
-app.put('/eventUpdate/:id', async function  (req, res) {
-console.log(req.params.id)
-
-
-
+app.put('/eventUpdate/:id', async function (req, res) {
+    
     try {
-        const eventoUpdate =  await Eventos.updateOne({ _id : req.params.id}, {
+        const eventoUpdate = await Eventos.updateOne({
+            _id: req.params.id
+        }, {
             title: req.body.title,
             start: req.body.start,
-            end:   req.body.end
-          });
+            end: req.body.end
+        });
 
-          res.status(200).json({
-              success: true,
-              message: "Evento actualizado"
-          })
+        res.status(200).json({
+            success: true,
+            message: "Evento actualizado"
+        })
     } catch (error) {
         res.status(400).json({
-            success:false,
+            success: false,
             message: error.message
         })
-        
     }
 
- 
-    
 });
+
+app.delete('/deleteEvent/:id', function (req, res) {
+
+    Eventos.deleteOne({
+        _id: req.params.id
+    }, function (err) {
+        if (err) {
+
+            res.status(400).json({
+                success: false,
+                message: err.message
+            })
+        } else {
+            res.status(200).json({
+                success: true,
+                message: "Evento Eliminado"
+            })
+        }
+    });
+
+})
 
 
 

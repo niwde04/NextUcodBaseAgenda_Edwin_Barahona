@@ -16,8 +16,9 @@ function validarUsuario() {
              success: function(res) {
 
                  let authorize = (JSON.stringify(res.success))
-                 
+             
                  if (authorize) {
+                     sessionStorage.setItem('userName', Usuario.val())
                      window.location.href = "http://localhost:3000/main.html";
                  }
              },
@@ -38,6 +39,5 @@ $( document ).ready(function() {
 
 
 $("#login").click(function () {
-    console.log('click')
     validarUsuario()
 })

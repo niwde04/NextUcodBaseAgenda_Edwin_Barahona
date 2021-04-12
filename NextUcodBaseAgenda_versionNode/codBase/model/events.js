@@ -3,7 +3,8 @@ const	eventSchema = new mongoose.Schema({
 
 title: String,
 start: String,
-end: String
+end: String,
+username: String
 })
 
 

@@ -1,13 +1,12 @@
 class EventManager {
 
     constructor() {
-        // this.obtenerDataInicial()
         this.inicializarFormulario()
-        //this.guardarEvento()
     }
 
 
     inicializarFormulario() {
+
         $('#start_date, #titulo, #end_date').val('');
         $('#start_date, #end_date').datepicker({
             dateFormat: "yy-mm-dd"
@@ -36,7 +35,30 @@ class EventManager {
 $(document).ready(function () {
     listarEventos()
 
+    const userName = getUserName();
+    
+    if (!userName){
+        redireccionarAcceso()
+    }
+
 });
+
+$('#logout').click(function(){
+    sessionStorage.setItem('userName','')
+    window.location.href = "http://localhost:3000/index.html";
+})
+
+function getUserName() {
+    const userName = sessionStorage.getItem('userName');
+    const userNameString = (userName);
+    return userNameString
+}
+
+function redireccionarAcceso(){
+    alert('Debe iniciar sesión para ver este contenido')
+    window.location.href = "http://localhost:3000/index.html";
+}
+
 
 $("#save").click(function () {
     let title = $('#titulo');
@@ -58,13 +80,11 @@ $("#save").click(function () {
             success: function (res) {
 
                 listarEventos()
-
             },
             error: function () {
                 alert("Error al ingresar Evento")
             }
         })
-
 
     } else {
         alert("Complete todos los campos");
@@ -73,19 +93,54 @@ $("#save").click(function () {
 })
 
 function listarEventos() {
-    $.get("/eventList", function (data, status) {
+    const userName = getUserName();
+    $.get("/eventList/" + userName, function (data, status) {
 
         const calendar = new FullCalendar.Calendar($('.calendario')[0], {
             initialView: 'dayGridMonth',
             editable: true,
             eventDrop: (event) => {
                 actualizarEvento(event)
+                console.log(JSON.stringify(event))
+            },
+            eventDragStart: (event) => {
+                $('.delete').find('img').attr('src', "./img/delete.png");
+                $('.delete').css('background-color', '#a70f19')
+            },
+            eventDragStop: (event) => {
+                var trashEl = $('.delete');
+                var ofs = trashEl.offset();
+                var x1 = ofs.left;
+                var x2 = ofs.left + trashEl.outerWidth(true);
+                var y1 = ofs.top;
+                var y2 = ofs.top + trashEl.outerHeight(true);
+
+                if (event.jsEvent.pageX >= x1 && event.jsEvent.pageX <= x2 &&
+                    event.jsEvent.pageY >= y1 && event.jsEvent.pageY <= y2) {
+
+                    $.ajax({
+                        url: '/deleteEvent/' + event.event.id,
+                        method: 'DELETE',
+                        contentType: "application/json",
+                        dataType: "json",
+
+                        success: function (res) {
+
+                            listarEventos()
+
+                        },
+                        error: function () {
+                            alert("Error al Eliminar Evento")
+                        }
+                    })
+                }
+
+                $('.delete').css('background-color', '#8B0913')
             }
         })
 
         calendar.render();
 
-     
         for (let i = 0; i < JSON.stringify(data.length); i++) {
 
             calendar.addEvent({
@@ -102,10 +157,10 @@ function listarEventos() {
 
 }
 
-function actualizarEvento(evento){
-console.log(evento.event.id,)
+function actualizarEvento(evento) {
+
     $.ajax({
-        url: '/eventUpdate/'+ evento.event.id,
+        url: '/eventUpdate/' + evento.event.id,
         method: 'PUT',
         contentType: "application/json",
         dataType: "json",
@@ -116,15 +171,11 @@ console.log(evento.event.id,)
         }),
         success: function (res) {
 
-            //listarEventos()
-
         },
         error: function () {
             alert("Error al ACTUALIZAR Evento")
         }
     })
-    
-
 }
 
 const Manager = new EventManager()
